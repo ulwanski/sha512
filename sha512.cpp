@@ -1,5 +1,3 @@
-#include <cstring>
-#include <fstream>
 #include "sha512.h"
  
 const unsigned long long SHA512::sha512_k[80] = //ULL = uint64
@@ -44,8 +42,7 @@ const unsigned long long SHA512::sha512_k[80] = //ULL = uint64
              0x4cc5d4becb3e42b6ULL, 0x597f299cfc657e2aULL,
              0x5fcb6fab3ad6faecULL, 0x6c44198c4a475817ULL};
  
-void SHA512::transform(const unsigned char *message, unsigned int block_nb)
-{
+void SHA512::transform(const unsigned char *message, unsigned int block_nb){
     uint64 w[80];
     uint64 wv[8];
     uint64 t1, t2;
@@ -82,8 +79,7 @@ void SHA512::transform(const unsigned char *message, unsigned int block_nb)
     }
 }
  
-void SHA512::init()
-{
+void SHA512::init(){
     m_h[0] = 0x6a09e667f3bcc908ULL;
     m_h[1] = 0xbb67ae8584caa73bULL;
     m_h[2] = 0x3c6ef372fe94f82bULL;
@@ -96,8 +92,7 @@ void SHA512::init()
     m_tot_len = 0;
 }
  
-void SHA512::update(const unsigned char *message, unsigned int len)
-{
+void SHA512::update(const unsigned char *message, unsigned int len){
     unsigned int block_nb;
     unsigned int new_len, rem_len, tmp_len;
     const unsigned char *shifted_message;
@@ -119,14 +114,12 @@ void SHA512::update(const unsigned char *message, unsigned int len)
     m_tot_len += (block_nb + 1) << 7;
 }
  
-void SHA512::final(unsigned char *digest)
-{
+void SHA512::final(unsigned char *digest){
     unsigned int block_nb;
     unsigned int pm_len;
     unsigned int len_b;
     int i;
-    block_nb = 1 + ((SHA384_512_BLOCK_SIZE - 17)
-                     < (m_len % SHA384_512_BLOCK_SIZE));
+    block_nb = 1 + ((SHA384_512_BLOCK_SIZE - 17) < (m_len % SHA384_512_BLOCK_SIZE));
     len_b = (m_tot_len + m_len) << 3;
     pm_len = block_nb << 7;
     memset(m_block + m_len, 0, pm_len - m_len);
@@ -156,11 +149,20 @@ std::string sha512(const unsigned char* dat, size_t len){
 }
 
 std::string sha512(std::string input){
-    unsigned char digest[SHA512::DIGEST_SIZE];
+	return sha512((const unsigned char*)input.c_str(), (size_t)input.length());
+}
+
+std::string sha512file(std::FILE* file){
+	unsigned char digest[SHA512::DIGEST_SIZE];
     memset(digest,0,SHA512::DIGEST_SIZE);
     SHA512 ctx = SHA512();
     ctx.init();
-    ctx.update((unsigned char*)input.c_str(), input.length());
+
+	char buff[BUFSIZ];
+	size_t len = 0;
+	while( ( len = std::fread(buff ,sizeof(char), BUFSIZ, file) ) > 0) {
+		ctx.update((const unsigned char*)buff, len);
+	}   
     ctx.final(digest);
  
     char buf[2*SHA512::DIGEST_SIZE+1];
@@ -168,4 +170,11 @@ std::string sha512(std::string input){
     for (int i = 0; i < SHA512::DIGEST_SIZE; i++)
         sprintf(buf+i*2, "%02x", digest[i]);
     return std::string(buf);
+}
+
+std::string sha512file(const char* filename){
+	std::FILE* file = std::fopen(filename, "rb");
+	std::string res = sha512file(file);
+	std::fclose(file);
+	return res;
 }
