@@ -5,7 +5,9 @@
 #ifndef SHA512_H
 #define SHA512_H
  
-std::string sha512(const unsigned char* dat, size_t len);
+#define _CRT_SECURE_NO_WARNINGS
+
+std::string sha512(const void* dat, size_t len);
 std::string sha512(std::string input);
 std::string sha512file(std::FILE* file);
 std::string sha512file(const char* filename);

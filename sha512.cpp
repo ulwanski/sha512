@@ -131,13 +131,13 @@ void SHA512::final(unsigned char *digest){
     }
 }
  
-std::string sha512(const unsigned char* dat, size_t len){
+std::string sha512(const void* dat, size_t len){
 
 	unsigned char digest[SHA512::DIGEST_SIZE];
     memset(digest,0,SHA512::DIGEST_SIZE);
     SHA512 ctx = SHA512();
     ctx.init();
-    ctx.update(dat, len);
+    ctx.update((const unsigned char*)dat, len);
     ctx.final(digest);
  
     char buf[2*SHA512::DIGEST_SIZE+1];
